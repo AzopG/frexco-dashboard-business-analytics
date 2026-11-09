@@ -1,0 +1,48 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+.venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Environment variables
+.env
+.env.local
+
+# Database backups
+*.sql.bak
+backup_*.sql
+
+# Deliverables (entregables separados, no código fuente)
+*.docx
+*.pdf
+
+# Images/PNGs (pantallazos y figuras de análisis)
+*.png
+
+# CSV data exports
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary analysis scripts
+_diag*.py
+_patch*.py
+_check*.py
+build_*.py
+generar_*.py
+tomar_*.py
+verificar_*.py
+frexco_demanda_producto.py
+
+# Logs
+*.log
+dump_err.txt
