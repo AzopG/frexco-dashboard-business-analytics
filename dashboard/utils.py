@@ -66,10 +66,9 @@ def figura_ventas_mes(df, ancho=10, alto=5):
 
 
 def figura_ventas_vs_desperdicio(df, ancho=10, alto=6):
-    """Gráfico agrupado: ventas vs desperdicio por producto (top 10, tema oscuro)."""
+    """Gráfico agrupado: ventas vs desperdicio por producto (tema oscuro)."""
     fig, ax = plt.subplots(figsize=(ancho, alto))
-    d = df.sort_values("Unidades_Vendidas", ascending=False).head(10).copy()
-    d = d.sort_values("Unidades_Vendidas", ascending=False)
+    d = df.sort_values("Unidades_Vendidas", ascending=False).copy()
     d["Etiqueta"] = d["Producto"].astype(str) + " (" + d["Categoria"].astype(str) + ")"
     x = range(len(d))
     w = 0.38
@@ -77,7 +76,7 @@ def figura_ventas_vs_desperdicio(df, ancho=10, alto=6):
            color=COLORS["secondary"], label="Unidades vendidas", zorder=3)
     ax.bar([i + w / 2 for i in x], d["Unidades_Desperdiciadas"], width=w,
            color=COLORS["danger"], label="Unidades desperdiciadas", zorder=3)
-    ax.set_title("Top 10 productos: ventas vs. desperdicio (unidades)")
+    ax.set_title(f"Ventas vs. desperdicio por producto ({len(d)} seleccionados)")
     ax.set_xlabel("Producto")
     ax.set_ylabel("Unidades")
     ax.set_xticks(list(x))

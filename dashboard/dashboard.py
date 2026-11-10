@@ -60,6 +60,13 @@ st.markdown(
     .stDataFrame { background-color: #1A1A1A !important; }
     .stSelectbox > div > div { background-color: #1A1A1A !important; color: #FFFFFF !important; }
     .stMultiSelect > div > div { background-color: #1A1A1A !important; color: #FFFFFF !important; }
+    /* Chips (tags) de los multiselect: fondo verde visible y texto blanco legible */
+    [data-baseweb="tag"] { background-color: #2E7D32 !important; border: 1px solid #43A047 !important; }
+    [data-baseweb="tag"] span { color: #FFFFFF !important; font-weight: 600 !important; }
+    [data-baseweb="tag"] svg { fill: #FFFFFF !important; }
+    /* Texto del buscador dentro del multiselect */
+    .stMultiSelect input { color: #FFFFFF !important; }
+    .stMultiSelect [data-baseweb="select"] { background-color: #1A1A1A !important; }
     .stSlider > div > div { color: #FFFFFF !important; }
     .conclusion { background: #1A1A1A; padding: 0.8rem; border-radius: 6px; font-size: 0.95rem; color: #FFFFFF; border-left: 4px solid #FFFFFF; }
     #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
