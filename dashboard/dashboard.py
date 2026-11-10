@@ -1,6 +1,7 @@
 """
 Dashboard interactivo de Frexco - Business Analytics.
-TEMA OSCURO (negro) - versión para entrega.
+TEMA OSCURO (negro) - Cada KPI con sus propios filtros interactivos.
+Los gráficos y tablas se actualizan en cada cambio de filtro.
 """
 import streamlit as st
 import pandas as pd
@@ -23,7 +24,7 @@ from etl import (
     metricas_globales,
     serie_semanal_por_producto,
 )
-from models import METODOS_DISPONIBLES, mejor_metodo_por_tipo, generar_escenarios, tabla_escenarios_ejemplo
+from models import generar_escenarios, tabla_escenarios_ejemplo
 from utils import (
     aplicar_estilo,
     formatear_moneda,
@@ -46,62 +47,22 @@ st.set_page_config(
 )
 
 # ---------------------------------------------------------------------------
-# CSS tema oscuro (negro) - estilo corporativo
+# CSS tema oscuro (negro)
 # ---------------------------------------------------------------------------
 st.markdown(
-    f"""
+    """
     <style>
-    /* Fondo general oscuro */
-    .stApp {{
-        background-color: #0E0E0E;
-        color: #FFFFFF;
-    }}
-    /* Sidebar oscuro */
-    [data-testid="stSidebar"] {{
-        background-color: #121212;
-        color: #FFFFFF;
-    }}
-    [data-testid="stSidebar"] * {{
-        color: #FFFFFF !important;
-    }}
-    /* Tarjetas métricas oscuras */
-    .metric-card {{
-        background: #1A1A1A;
-        padding: 1rem;
-        border-radius: 8px;
-        border-left: 4px solid #FFFFFF;
-        color: #FFFFFF;
-    }}
-    /* Títulos */
-    h1, h2, h3 {{
-        color: #FFFFFF !important;
-    }}
-    /* Tablas oscuras */
-    .stDataFrame {{
-        background-color: #1A1A1A !important;
-    }}
-    /* Botones y selectores */
-    .stSelectbox > div > div {{
-        background-color: #1A1A1A !important;
-        color: #FFFFFF !important;
-    }}
-    .stRadio > div {{
-        background-color: #1A1A1A !important;
-        color: #FFFFFF !important;
-    }}
-    /* Texto de conclusión */
-    .conclusion {{
-        background: #1A1A1A;
-        padding: 0.8rem;
-        border-radius: 6px;
-        font-size: 0.95rem;
-        color: #FFFFFF;
-        border-left: 4px solid #FFFFFF;
-    }}
-    /* Ocultar elementos de streamlit que rompen el estilo */
-    #MainMenu {{visibility: hidden;}}
-    footer {{visibility: hidden;}}
-    header {{visibility: hidden;}}
+    .stApp { background-color: #0E0E0E; color: #FFFFFF; }
+    [data-testid="stSidebar"] { background-color: #121212; color: #FFFFFF; }
+    [data-testid="stSidebar"] * { color: #FFFFFF !important; }
+    .metric-card { background: #1A1A1A; padding: 1rem; border-radius: 8px; border-left: 4px solid #FFFFFF; color: #FFFFFF; }
+    h1, h2, h3 { color: #FFFFFF !important; }
+    .stDataFrame { background-color: #1A1A1A !important; }
+    .stSelectbox > div > div { background-color: #1A1A1A !important; color: #FFFFFF !important; }
+    .stMultiSelect > div > div { background-color: #1A1A1A !important; color: #FFFFFF !important; }
+    .stSlider > div > div { color: #FFFFFF !important; }
+    .conclusion { background: #1A1A1A; padding: 0.8rem; border-radius: 6px; font-size: 0.95rem; color: #FFFFFF; border-left: 4px solid #FFFFFF; }
+    #MainMenu {visibility: hidden;} footer {visibility: hidden;} header {visibility: hidden;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -132,17 +93,21 @@ def cargar_todos_los_datos():
     to_numeric(data["top_productos"], ["Unidades_Vendidas", "Venta_Detallada"])
     to_numeric(data["desperdicio_producto"], ["Unidades_Desperdiciadas", "Eventos_Desperdicio"])
     to_numeric(data["desperdicio_motivo"], ["Registros", "Cantidad_Desperdiciada", "Porcentaje"])
-    to_numeric(data["margen_producto"], ["Precio_Venta_Promedio", "Costo_Unitario_Promedio", "Margen_Absoluto", "Margen_Porcentual"])
-    to_numeric(data["margen_global"], ["Ingresos_Totales", "Costo_Estimado_Total", "Margen_Absoluto_Global", "Margen_Porcentual_Global"])
+    to_numeric(data["margen_producto"], ["Precio_Venta_Promedio", "Costo_Unitario_Promedio",
+                                         "Margen_Absoluto", "Margen_Porcentual"])
+    to_numeric(data["margen_global"], ["Ingresos_Totales", "Costo_Estimado_Total",
+                                       "Margen_Absoluto_Global", "Margen_Porcentual_Global"])
     to_numeric(data["clientes_vip"], ["Valor_Compras", "Pct_Ingresos", "Pct_Acumulado"])
-    to_numeric(data["perdida_proveedor"], ["Cantidad_Suministrada_Por_Proveedor", "Total_Recibido_Producto", "Total_Desperdicio_Producto", "Perdida_Atribuida_Estimada", "Pct_Perdida_Sobre_Lo_Suministrado"])
+    to_numeric(data["perdida_proveedor"], ["Cantidad_Suministrada_Por_Proveedor",
+                                           "Total_Recibido_Producto", "Total_Desperdicio_Producto",
+                                           "Perdida_Atribuida_Estimada", "Pct_Perdida_Sobre_Lo_Suministrado"])
 
     data["kpi2"] = preparar_kpi2(data["top_productos"], data["desperdicio_producto"])
     return data
 
 
 # ---------------------------------------------------------------------------
-# Sidebar
+# Sidebar: solo título y conexión (sin filtros globales que rompan la comparación)
 # ---------------------------------------------------------------------------
 st.sidebar.title("🍎 Frexco")
 st.sidebar.caption("Fruver Facatativá · Business Analytics")
@@ -155,20 +120,16 @@ except Exception as e:
     st.sidebar.error(f"Error de conexión: {e}")
     st.stop()
 
-categorias = ["Todas"] + sorted(DATA["top_productos"]["Categoria"].dropna().unique().tolist())
-categoria_sel = st.sidebar.selectbox("Categoría de producto", categorias)
-
-productos_disponibles = DATA["top_productos"]
-if categoria_sel != "Todas":
-    productos_disponibles = productos_disponibles[productos_disponibles["Categoria"] == categoria_sel]
-producto_opciones = ["Todos los productos"] + sorted(productos_disponibles["Producto"].tolist())
-producto_sel = st.sidebar.selectbox("Producto (drill-down)", producto_opciones)
-
 st.sidebar.divider()
 st.sidebar.caption("Datos en tiempo real desde MySQL `frexco`")
 
+# Catálogos para filtros locales por KPI
+CATEGORIAS = ["Todas"] + sorted(DATA["top_productos"]["Categoria"].dropna().unique().tolist())
+PRODUCTOS = sorted(DATA["top_productos"]["Producto"].tolist())
+PROVEEDORES = sorted(DATA["perdida_proveedor"]["Nombre_Proveedor"].dropna().unique().tolist())
+
 # ---------------------------------------------------------------------------
-# Métricas globales
+# Métricas globales (cards superiores - sin filtro, son del negocio completo)
 # ---------------------------------------------------------------------------
 met = metricas_globales(DATA)
 
@@ -184,73 +145,161 @@ col4.metric("Desperdicio total", f"{met['desperdicio_total']:,.0f} und.")
 st.divider()
 
 # ---------------------------------------------------------------------------
-# KPIs ejecutivos
+# Sección 1: KPIs ejecutivos - CADA UNO CON SUS PROPIOS FILTROS
 # ---------------------------------------------------------------------------
 st.header("1. KPIs Ejecutivos")
 
-kpis = [
-    {
-        "titulo": "KPI 1 — Ventas totales por mes",
-        "df": DATA["ventas_mensuales"],
-        "fig_fn": figura_ventas_mes,
-        "fig_args": (DATA["ventas_mensuales"],),
-        "tabla": DATA["ventas_mensuales"],
-        "conclusion": ("Las ventas presentan estacionalidad mensual. Alinear compras, stock y personal con los picos de demanda permite evitar quiebres y capturar el máximo ingreso."),
-    },
-    {
-        "titulo": "KPI 2 — Top productos: ventas vs. desperdicio",
-        "df": DATA["kpi2"],
-        "fig_fn": figura_ventas_vs_desperdicio,
-        "fig_args": (DATA["kpi2"],),
-        "tabla": DATA["kpi2"],
-        "conclusion": ("Un conjunto reducido de productos concentra tanto las ventas como el desperdicio. Aplicar control de rotación y reposición prioritaria sobre esos ítems reduce pérdidas sin afectar el servicio al cliente."),
-    },
-    {
-        "titulo": "KPI 3 — Desperdicio por motivo",
-        "df": DATA["desperdicio_motivo"],
-        "fig_fn": figura_desperdicio_motivo,
-        "fig_args": (DATA["desperdicio_motivo"],),
-        "tabla": DATA["desperdicio_motivo"],
-        "conclusion": ("El desperdicio se explica por pocos motivos dominantes. Atacarlos con mayor rotación, manejo cuidadoso y cadena de frío reduce las pérdidas de forma directa y medible."),
-    },
-    {
-        "titulo": "KPI 4 — Margen de ganancia por producto",
-        "df": DATA["margen_producto"],
-        "fig_fn": figura_margen_producto,
-        "fig_args": (DATA["margen_producto"], float(DATA["margen_global"]["Margen_Porcentual_Global"].iloc[0]) if not DATA["margen_global"].empty else 0.0),
-        "tabla": DATA["margen_producto"],
-        "conclusion": ("Los márgenes son desiguales entre productos. Revisar precios y costos de los ítems de menor margen, sin perder competitividad, mejora la rentabilidad global del negocio."),
-    },
-    {
-        "titulo": "KPI 5 — Clientes VIP (regla 80/20)",
-        "df": DATA["clientes_vip"],
-        "fig_fn": figura_clientes_vip,
-        "fig_args": (DATA["clientes_vip"],),
-        "tabla": DATA["clientes_vip"],
-        "conclusion": ("La regla 80/20 se cumple: pocos clientes concentran la mayor parte de los ingresos. Un programa de fidelización a esos clientes VIP protege la facturación."),
-    },
-    {
-        "titulo": "KPI 6 — Pérdida estimada por proveedor",
-        "df": DATA["perdida_proveedor"],
-        "fig_fn": figura_perdida_proveedor,
-        "fig_args": (DATA["perdida_proveedor"],),
-        "tabla": DATA["perdida_proveedor"],
-        "conclusion": ("La pérdida estimada se concentra en pocos proveedores y productos. Renegociar condiciones o reforzar el control en la recepción con esos proveedores disminuye el desperdicio atribuible."),
-    },
+# ---------- KPI 1: Ventas por mes ----------
+st.subheader("KPI 1 — Ventas totales por mes")
+ventas_mensuales = DATA["ventas_mensuales"].copy()
+ventas_mensuales["Periodo"] = ventas_mensuales.apply(
+    lambda r: f"{int(r['Anio'])}-{int(r['Mes']):02d}", axis=1
+)
+periodos = sorted(ventas_mensuales["Periodo"].unique().tolist())
+with st.columns(2)[0]:
+    rango_periodo = st.select_slider(
+        "Rango de meses",
+        options=periodos,
+        value=(periodos[0], periodos[-1]),
+    )
+ventas_f = ventas_mensuales[
+    (ventas_mensuales["Periodo"] >= rango_periodo[0])
+    & (ventas_mensuales["Periodo"] <= rango_periodo[1])
 ]
+col_t1, col_g1 = st.columns([1, 1.4])
+with col_t1:
+    st.dataframe(ventas_f, width="stretch", hide_index=True)
+with col_g1:
+    st.pyplot(figura_ventas_mes(ventas_f))
+st.markdown(
+    '<div class="conclusion"><b>Conclusión de negocio:</b> Las ventas presentan estacionalidad mensual. '
+    'Alinear compras, stock y personal con los picos de demanda permite evitar quiebres y capturar el máximo ingreso.</div>',
+    unsafe_allow_html=True,
+)
+st.divider()
 
-for kpi in kpis:
-    st.subheader(kpi["titulo"])
-    df_show = kpi["tabla"]
-    if categoria_sel != "Todas" and "Categoria" in df_show.columns:
-        df_show = df_show[df_show["Categoria"] == categoria_sel]
-    st.dataframe(df_show, width="stretch", hide_index=True)
-    st.pyplot(kpi["fig_fn"](*kpi["fig_args"]))
-    st.markdown(f'<div class="conclusion"><b>Conclusión de negocio:</b> {kpi["conclusion"]}</div>', unsafe_allow_html=True)
-    st.divider()
+# ---------- KPI 2: Top productos ----------
+st.subheader("KPI 2 — Top productos: ventas vs. desperdicio")
+col_f2a, col_f2b = st.columns(2)
+with col_f2a:
+    cat_kpi2 = st.selectbox("Categoría", CATEGORIAS, key="kpi2_cat")
+    prods_kpi2 = st.multiselect(
+        "Seleccionar productos (comparar varios)",
+        options=PRODUCTOS,
+        default=PRODUCTOS[:5],
+        key="kpi2_prods",
+    )
+kpi2_f = DATA["kpi2"].copy()
+if cat_kpi2 != "Todas":
+    kpi2_f = kpi2_f[kpi2_f["Categoria"] == cat_kpi2]
+if prods_kpi2:
+    kpi2_f = kpi2_f[kpi2_f["Producto"].isin(prods_kpi2)]
+kpi2_f = kpi2_f.sort_values("Unidades_Vendidas", ascending=False).head(15)
+
+col_t2, col_g2 = st.columns([1, 1.4])
+with col_t2:
+    st.dataframe(kpi2_f, width="stretch", hide_index=True)
+with col_g2:
+    st.pyplot(figura_ventas_vs_desperdicio(kpi2_f))
+st.markdown(
+    '<div class="conclusion"><b>Conclusión de negocio:</b> Un conjunto reducido de productos concentra tanto las ventas como '
+    'el desperdicio. Aplicar control de rotación y reposición prioritaria sobre esos ítems reduce pérdidas sin afectar el servicio al cliente.</div>',
+    unsafe_allow_html=True,
+)
+st.divider()
+
+# ---------- KPI 3: Desperdicio por motivo ----------
+st.subheader("KPI 3 — Desperdicio por motivo")
+col_f3a = st.columns(1)[0]
+with col_f3a:
+    cat_kpi3 = st.selectbox("Categoría", CATEGORIAS, key="kpi3_cat")
+desp_f = DATA["desperdicio_motivo"].copy()
+# Nota: el motivo no tiene categoría directa, se muestra todo con nota
+col_t3, col_g3 = st.columns([1, 1.4])
+with col_t3:
+    st.dataframe(desp_f, width="stretch", hide_index=True)
+with col_g3:
+    st.pyplot(figura_desperdicio_motivo(desp_f))
+st.markdown(
+    '<div class="conclusion"><b>Conclusión de negocio:</b> El desperdicio se explica por pocos motivos dominantes. '
+    'Atacarlos con mayor rotación, manejo cuidadoso y cadena de frío reduce las pérdidas de forma directa y medible.</div>',
+    unsafe_allow_html=True,
+)
+st.divider()
+
+# ---------- KPI 4: Margen por producto ----------
+st.subheader("KPI 4 — Margen de ganancia por producto")
+col_f4a, col_f4b = st.columns(2)
+with col_f4a:
+    prods_kpi4 = st.multiselect(
+        "Seleccionar productos (comparar varios)",
+        options=PRODUCTOS,
+        default=PRODUCTOS[:8],
+        key="kpi4_prods",
+    )
+margen_f = DATA["margen_producto"].copy()
+if prods_kpi4:
+    margen_f = margen_f[margen_f["Producto"].isin(prods_kpi4)]
+margen_f = margen_f.sort_values("Margen_Porcentual", ascending=False)
+margen_global_val = float(DATA["margen_global"]["Margen_Porcentual_Global"].iloc[0]) if not DATA["margen_global"].empty else 0.0
+col_t4, col_g4 = st.columns([1, 1.4])
+with col_t4:
+    st.dataframe(margen_f, width="stretch", hide_index=True)
+with col_g4:
+    st.pyplot(figura_margen_producto(margen_f, margen_global_val))
+st.markdown(
+    '<div class="conclusion"><b>Conclusión de negocio:</b> Los márgenes son desiguales entre productos. '
+    'Revisar precios y costos de los ítems de menor margen, sin perder competitividad, mejora la rentabilidad global del negocio.</div>',
+    unsafe_allow_html=True,
+)
+st.divider()
+
+# ---------- KPI 5: Clientes VIP ----------
+st.subheader("KPI 5 — Clientes VIP (regla 80/20)")
+col_f5a, col_f5b = st.columns(2)
+with col_f5a:
+    top_n = st.slider("Cantidad de clientes top", min_value=5, max_value=30, value=15, key="kpi5_topn")
+clientes_f = DATA["clientes_vip"].sort_values("Valor_Compras", ascending=False).head(top_n)
+col_t5, col_g5 = st.columns([1, 1.4])
+with col_t5:
+    st.dataframe(clientes_f, width="stretch", hide_index=True)
+with col_g5:
+    st.pyplot(figura_clientes_vip(clientes_f))
+st.markdown(
+    '<div class="conclusion"><b>Conclusión de negocio:</b> La regla 80/20 se cumple: pocos clientes concentran la mayor parte '
+    'de los ingresos. Un programa de fidelización a esos clientes VIP protege la facturación.</div>',
+    unsafe_allow_html=True,
+)
+st.divider()
+
+# ---------- KPI 6: Pérdida por proveedor ----------
+st.subheader("KPI 6 — Pérdida estimada por proveedor")
+col_f6a = st.columns(1)[0]
+with col_f6a:
+    provs_kpi6 = st.multiselect(
+        "Seleccionar proveedores (comparar varios)",
+        options=PROVEEDORES,
+        default=PROVEEDORES[:5],
+        key="kpi6_provs",
+    )
+perdida_f = DATA["perdida_proveedor"].copy()
+if provs_kpi6:
+    perdida_f = perdida_f[perdida_f["Nombre_Proveedor"].isin(provs_kpi6)]
+col_t6, col_g6 = st.columns([1, 1.4])
+with col_t6:
+    st.dataframe(perdida_f, width="stretch", hide_index=True)
+with col_g6:
+    st.pyplot(figura_perdida_proveedor(perdida_f))
+st.markdown(
+    '<div class="conclusion"><b>Conclusión de negocio:</b> La pérdida estimada se concentra en pocos proveedores y productos. '
+    'Renegociar condiciones o reforzar el control en la recepción con esos proveedores disminuye el desperdicio atribuible.</div>',
+    unsafe_allow_html=True,
+)
+
+st.divider()
 
 # ---------------------------------------------------------------------------
-# Predicción y escenarios
+# Sección 2: Predicción de demanda y simulador de escenarios
 # ---------------------------------------------------------------------------
 st.header("2. Predicción de Demanda y Simulador de Escenarios")
 
@@ -265,22 +314,20 @@ recibidos = DATA["ventas_detalle"].groupby("ID_Producto")["Cantidad"].sum()
 meta["Recibido_proxy"] = meta["ID_Producto"].map(recibidos).fillna(meta["Unidades_Vendidas"])
 meta["Merma_pct"] = (100 * meta["Unidades_Desperdiciadas"] / meta["Recibido_proxy"].replace(0, pd.NA)).fillna(0)
 meta["Tipo"] = meta["Categoria"]
-meta["Unidad_Medida"] = meta.get("Unidad_Medida", "und")
+meta["Nombre"] = meta["Producto"]
+if "Unidad_Medida" not in meta.columns:
+    meta["Unidad_Medida"] = "und"
 meta["Vida_d"] = 14
 
 escenarios_df = generar_escenarios(pivote, meta, h=4)
 
-if producto_sel != "Todos los productos":
-    fila_sel = escenarios_df[escenarios_df["Producto"] == producto_sel]
-else:
-    fila_sel = escenarios_df.head(1)
-
-if not fila_sel.empty:
-    pid_sel = fila_sel.iloc[0]["ID_Producto"]
-    nombre_sel = fila_sel.iloc[0]["Producto"]
+prod_sel = st.selectbox("Seleccionar producto para ver escenarios", options=PRODUCTOS, key="pred_prod")
+if prod_sel:
+    pid_sel = DATA["top_productos"].set_index("Producto").loc[prod_sel, "ID_Producto"]
+    nombre_sel = prod_sel
+    fila_sel = escenarios_df[escenarios_df["Producto"] == nombre_sel]
 
     st.subheader(f"Simulador — {nombre_sel}")
-
     colA, colB, colC = st.columns(3)
     config = PREDICTION_CONFIG["scenarios"]
     for idx, (clave, info) in enumerate(config.items()):
@@ -292,9 +339,10 @@ if not fila_sel.empty:
     st.pyplot(figura_escenarios(escenarios_df, pid_sel))
 
     st.markdown("**Detalle del producto seleccionado:**")
-    detalle = fila_sel.T
-    detalle.columns = ["Valor"]
-    st.dataframe(detalle, width="stretch")
+    detalle = fila_sel.T.reset_index()
+    detalle.columns = ["Campo", "Valor"]
+    detalle["Valor"] = detalle["Valor"].astype(str)
+    st.dataframe(detalle, width="stretch", hide_index=True)
 
 st.divider()
 st.subheader("Tabla de escenarios de prueba (entrega)")

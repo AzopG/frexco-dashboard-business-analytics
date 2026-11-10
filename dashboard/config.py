@@ -12,7 +12,7 @@ load_dotenv()
 DB_CONFIG = {
     "host": os.getenv("FREXCO_DB_HOST", "localhost"),
     "user": os.getenv("FREXCO_DB_USER", "root"),
-    "password": os.getenv("FREXCO_DB_PASSWORD", ""),
+    "password": os.getenv("FREXCO_DB_PASSWORD", "123"),
     "database": os.getenv("FREXCO_DB_NAME", "frexco"),
     "charset": "utf8",
 }
