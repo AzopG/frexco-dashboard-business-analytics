@@ -106,21 +106,22 @@ def figura_desperdicio_motivo(df, ancho=9, alto=6):
 
 
 def figura_margen_producto(df, margen_global, ancho=10, alto=6):
-    """Gráfico de margen: 5 mejores (verde) vs 5 más bajos (rojo, tema oscuro)."""
+    """Margen por producto comparado con el margen global.
+
+    Verde si el producto supera el margen global del negocio; rojo si está por
+    debajo. Muestra todos los productos filtrados (no un top fijo), de modo que
+    el color siempre coincide con la comparación contra la línea global.
+    """
     fig, ax = plt.subplots(figsize=(ancho, alto))
     d = df.dropna(subset=["Margen_Porcentual"]).sort_values(
-        "Margen_Porcentual", ascending=False
+        "Margen_Porcentual", ascending=True
     ).reset_index(drop=True)
-    top5 = d.head(5)
-    bottom5 = d.tail(5)
-    sel = pd.concat([top5, bottom5]).sort_values("Margen_Porcentual", ascending=True)
     colores = [
-        COLORS["danger"] if m in set(bottom5["Margen_Porcentual"])
-        else COLORS["success"]
-        for m in sel["Margen_Porcentual"]
+        COLORS["success"] if m >= margen_global else COLORS["danger"]
+        for m in d["Margen_Porcentual"]
     ]
-    ax.barh(sel["Producto"], sel["Margen_Porcentual"], color=colores, zorder=3)
-    ax.set_title("Margen de ganancia (%): 5 mejores vs. 5 más bajos")
+    ax.barh(d["Producto"], d["Margen_Porcentual"], color=colores, zorder=3)
+    ax.set_title(f"Margen por producto vs. margen global ({margen_global:.1f}%)")
     ax.set_xlabel("Margen porcentual (%)")
     ax.axvline(margen_global, color="#FFFFFF", linestyle="--", linewidth=1)
     ax.text(

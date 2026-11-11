@@ -189,8 +189,9 @@ with col_t1:
 with col_g1:
     st.pyplot(figura_ventas_mes(ventas_f))
 st.markdown(
-    '<div class="conclusion"><b>Conclusión de negocio:</b> Las ventas presentan estacionalidad mensual. '
-    'Alinear compras, stock y personal con los picos de demanda permite evitar quiebres y capturar el máximo ingreso.</div>',
+    '<div class="conclusion"><b>Conclusión de negocio:</b> Las ventas presentan estacionalidad mensual: '
+    'los picos son marzo ($2,04 M) y julio ($1,83 M), y el valle es mayo ($0,49 M). '
+    'Alinear compras, stock y personal con esos picos permite evitar quiebres y capturar el máximo ingreso.</div>',
     unsafe_allow_html=True,
 )
 st.divider()
@@ -219,8 +220,9 @@ with col_t2:
 with col_g2:
     st.pyplot(figura_ventas_vs_desperdicio(kpi2_f))
 st.markdown(
-    '<div class="conclusion"><b>Conclusión de negocio:</b> Un conjunto reducido de productos concentra tanto las ventas como '
-    'el desperdicio. Aplicar control de rotación y reposición prioritaria sobre esos ítems reduce pérdidas sin afectar el servicio al cliente.</div>',
+    '<div class="conclusion"><b>Conclusión de negocio:</b> El desperdicio se concentra en productos de baja rotación '
+    '(Lechuga: 156 und. con solo 18 vendidas; Pera: 146; Uva: 128), mientras el de mayor venta (Mango: 158 vendidas) '
+    'no presenta merma. Priorizar rotación y reposición en los ítems de alta merma y baja venta reduce pérdidas sin afectar el servicio.</div>',
     unsafe_allow_html=True,
 )
 st.divider()
@@ -236,8 +238,9 @@ with col_t3:
 with col_g3:
     st.pyplot(figura_desperdicio_motivo(desp_f))
 st.markdown(
-    '<div class="conclusion"><b>Conclusión de negocio:</b> El desperdicio se explica por pocos motivos dominantes. '
-    'Atacarlos con mayor rotación, manejo cuidadoso y cadena de frío reduce las pérdidas de forma directa y medible.</div>',
+    '<div class="conclusion"><b>Conclusión de negocio:</b> Tres motivos explican el 67% del desperdicio: '
+    'golpe en transporte (24,8%), vencimiento (22,1%) y maduración excesiva (20,4%). '
+    'Atacarlos con mejor manipulación, cadena de frío y rotación reduce las pérdidas de forma directa y medible.</div>',
     unsafe_allow_html=True,
 )
 st.divider()
@@ -263,14 +266,15 @@ with col_t4:
 with col_g4:
     st.pyplot(figura_margen_producto(margen_f, margen_global_val))
 st.markdown(
-    '<div class="conclusion"><b>Conclusión de negocio:</b> Los márgenes son desiguales entre productos. '
-    'Revisar precios y costos de los ítems de menor margen, sin perder competitividad, mejora la rentabilidad global del negocio.</div>',
+    '<div class="conclusion"><b>Conclusión de negocio:</b> Los márgenes van de 66,9% (Pepino) a 36,6% (Piña), con un global de 41,2%. '
+    'Verde = por encima del margen global; rojo = por debajo. Revisar precios y costos de los ítems en rojo '
+    'mejora la rentabilidad global sin perder competitividad.</div>',
     unsafe_allow_html=True,
 )
 st.divider()
 
 # ---------- KPI 5: Clientes VIP ----------
-st.subheader("KPI 5 — Clientes VIP (regla 80/20)")
+st.subheader("KPI 5 — Clientes VIP (concentración de ingresos / Pareto)")
 col_f5a, col_f5b = st.columns(2)
 with col_f5a:
     top_n = st.slider("Cantidad de clientes top", min_value=5, max_value=30, value=15, key="kpi5_topn")
@@ -281,8 +285,9 @@ with col_t5:
 with col_g5:
     st.pyplot(figura_clientes_vip(clientes_f))
 st.markdown(
-    '<div class="conclusion"><b>Conclusión de negocio:</b> La regla 80/20 se cumple: pocos clientes concentran la mayor parte '
-    'de los ingresos. Un programa de fidelización a esos clientes VIP protege la facturación.</div>',
+    '<div class="conclusion"><b>Conclusión de negocio:</b> La concentración es <b>moderada</b>, no un 80/20 estricto: '
+    'el 20% de clientes (8 de 39) aporta ~39% de los ingresos, y se necesita ~54% de los clientes (21 de 39) para llegar al 80%. '
+    'Aun así, priorizar la fidelización de la mitad superior de clientes protege la mayor parte de la facturación.</div>',
     unsafe_allow_html=True,
 )
 st.divider()
@@ -306,8 +311,9 @@ with col_t6:
 with col_g6:
     st.pyplot(figura_perdida_proveedor(perdida_f))
 st.markdown(
-    '<div class="conclusion"><b>Conclusión de negocio:</b> La pérdida estimada se concentra en pocos proveedores y productos. '
-    'Renegociar condiciones o reforzar el control en la recepción con esos proveedores disminuye el desperdicio atribuible.</div>',
+    '<div class="conclusion"><b>Conclusión de negocio:</b> El % de pérdida es relativamente homogéneo (4,0%–7,8%); '
+    'los más críticos son Agroinsumos San Miguel (7,8%), Fruitsfull (7,6%) y Canasta Fresh (7,5%). '
+    'Reforzar el control en la recepción con esos proveedores reduce el desperdicio atribuible.</div>',
     unsafe_allow_html=True,
 )
 

@@ -112,7 +112,7 @@ y reforzado con CSS en `dashboard.py`.
 - ¿Cuáles son los productos con mayor venta y mayor desperdicio?
 - ¿Qué motivos explican el desperdicio y en qué proporción?
 - ¿Qué productos tienen mejor y peor margen de ganancia?
-- ¿Qué clientes concentran el 80% de los ingresos (regla 80/20)?
+- ¿Qué clientes concentran la mayor parte de los ingresos (análisis Pareto)?
 - ¿Qué proveedores presentan mayor pérdida estimada?
 - ¿Cuánta demanda se espera por producto en las próximas 4 semanas bajo 3 escenarios?
 
