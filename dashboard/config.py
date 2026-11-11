@@ -12,7 +12,8 @@ load_dotenv()
 DB_CONFIG = {
     "host": os.getenv("FREXCO_DB_HOST", "localhost"),
     "user": os.getenv("FREXCO_DB_USER", "root"),
-    "password": os.getenv("FREXCO_DB_PASSWORD", "123"),
+    # Sin contraseña por defecto: se resuelve desde variables de entorno / archivo .env
+    "password": os.getenv("FREXCO_DB_PASSWORD", ""),
     "database": os.getenv("FREXCO_DB_NAME", "frexco"),
     "charset": "utf8",
 }
@@ -21,15 +22,15 @@ DB_CONFIG = {
 # Paleta de colores corporativa (coherente con la identidad Frexco)
 # ---------------------------------------------------------------------------
 COLORS = {
-    "primary": "#1F3864",      # Azul oscuro corporativo
-    "secondary": "#4768B5",    # Azul medio
-    "accent": "#ED7D31",       # Naranja de alerta
-    "success": "#4CAF50",      # Verde de ok
-    "danger": "#C00000",       # Rojo de riesgo
-    "warning": "#FFC000",      # Ámbar de precaución
+    "primary": "#1B5E20",      # Verde oscuro corporativo (imagen fruver)
+    "secondary": "#2E7D32",    # Verde medio
+    "accent": "#F9A825",       # Ámbar de alerta
+    "success": "#43A047",      # Verde de ok
+    "danger": "#C62828",       # Rojo de riesgo
+    "warning": "#FFC107",      # Ámbar de precaución
     "light": "#F2F2F2",        # Fondo claro
-    "text": "#404040",         # Texto principal
-    "muted": "#808080",        # Texto secundario
+    "text": "#E0E0E0",         # Texto principal
+    "muted": "#9E9E9E",        # Texto secundario
 }
 
 # ---------------------------------------------------------------------------

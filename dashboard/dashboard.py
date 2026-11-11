@@ -3,6 +3,8 @@ Dashboard interactivo de Frexco - Business Analytics.
 TEMA OSCURO (negro) - Cada KPI con sus propios filtros interactivos.
 Los gráficos y tablas se actualizan en cada cambio de filtro.
 """
+from datetime import date
+
 import streamlit as st
 import pandas as pd
 from config import DB_CONFIG, COLORS, PREDICTION_CONFIG, ASSETS_DIR
@@ -162,17 +164,25 @@ ventas_mensuales = DATA["ventas_mensuales"].copy()
 ventas_mensuales["Periodo"] = ventas_mensuales.apply(
     lambda r: f"{int(r['Anio'])}-{int(r['Mes']):02d}", axis=1
 )
-periodos = sorted(ventas_mensuales["Periodo"].unique().tolist())
+fecha_min = DATA["ventas_detalle"]["Fecha_Venta"].min().date()
+fecha_max = DATA["ventas_detalle"]["Fecha_Venta"].max().date()
 with st.columns(2)[0]:
-    rango_periodo = st.select_slider(
-        "Rango de meses",
-        options=periodos,
-        value=(periodos[0], periodos[-1]),
+    rango_fecha = st.date_input(
+        "Rango de fechas",
+        value=(fecha_min, fecha_max),
+        min_value=fecha_min,
+        max_value=fecha_max,
+        format="YYYY-MM-DD",
     )
-ventas_f = ventas_mensuales[
-    (ventas_mensuales["Periodo"] >= rango_periodo[0])
-    & (ventas_mensuales["Periodo"] <= rango_periodo[1])
-]
+if isinstance(rango_fecha, (tuple, list)) and len(rango_fecha) == 2:
+    per_ini = f"{rango_fecha[0].year}-{rango_fecha[0].month:02d}"
+    per_fin = f"{rango_fecha[1].year}-{rango_fecha[1].month:02d}"
+    ventas_f = ventas_mensuales[
+        (ventas_mensuales["Periodo"] >= per_ini)
+        & (ventas_mensuales["Periodo"] <= per_fin)
+    ]
+else:
+    ventas_f = ventas_mensuales
 col_t1, col_g1 = st.columns([1, 1.4])
 with col_t1:
     st.dataframe(ventas_f, width="stretch", hide_index=True)
@@ -217,11 +227,9 @@ st.divider()
 
 # ---------- KPI 3: Desperdicio por motivo ----------
 st.subheader("KPI 3 — Desperdicio por motivo")
-col_f3a = st.columns(1)[0]
-with col_f3a:
-    cat_kpi3 = st.selectbox("Categoría", CATEGORIAS, key="kpi3_cat")
+# El motivo de desperdicio no tiene categoría de producto asociada en el modelo
+# de datos, por lo que este KPI se muestra a nivel global (sin filtro).
 desp_f = DATA["desperdicio_motivo"].copy()
-# Nota: el motivo no tiene categoría directa, se muestra todo con nota
 col_t3, col_g3 = st.columns([1, 1.4])
 with col_t3:
     st.dataframe(desp_f, width="stretch", hide_index=True)

@@ -21,7 +21,7 @@ dashboard/
 
 1. Python 3.9 o superior.
 2. Base de datos MySQL llamada `frexco` cargada con el script `Frexco (3).sql`.
-3. Credenciales de acceso a MySQL (por defecto: `localhost`, `root`, `123`).
+3. Credenciales de acceso a MySQL propias (no se incluyen en el repositorio).
 
 ## Instalación y ejecución local
 
@@ -32,10 +32,12 @@ cd dashboard
 # 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 3. (Opcional) Crear archivo .env con credenciales propias
+# 3. Crear el archivo .env con tus credenciales (obligatorio)
+#    Copia la plantilla y ajusta los valores:
+copy .env.example .env
 #    FREXCO_DB_HOST=localhost
 #    FREXCO_DB_USER=root
-#    FREXCO_DB_PASSWORD=123
+#    FREXCO_DB_PASSWORD=tu_contraseña
 #    FREXCO_DB_NAME=frexco
 
 # 4. Ejecutar el dashboard
@@ -47,11 +49,13 @@ El dashboard quedará disponible en `http://localhost:8501`.
 ## Conexión a datos
 
 La conexión a MySQL se realiza mediante el módulo `db.py` usando `mysql-connector-python`.
-Las credenciales se resuelven en este orden:
+Las credenciales **nunca** están escritas en el código; se resuelven así:
 
 1. Variables de entorno (`FREXCO_DB_HOST`, `FREXCO_DB_USER`, `FREXCO_DB_PASSWORD`, `FREXCO_DB_NAME`).
-2. Archivo `.env` en la raíz del dashboard (si existe).
-3. Valores por defecto definidos en `config.py`.
+2. Archivo `.env` en la carpeta del dashboard (cargado con `python-dotenv`).
+3. Valores por defecto solo para host/usuario/base de datos; la contraseña no tiene valor por defecto.
+
+El archivo `.env` está incluido en `.gitignore`, por lo que las credenciales no se suben al repositorio.
 
 ## Módulos y responsabilidades
 
@@ -84,13 +88,24 @@ semanas:
 
 ## Interacciones disponibles
 
-1. **Selector de categoría**: filtra todos los KPIs y el simulador por categoría de producto.
-2. **Selector de producto (drill-down)**: muestra el detalle y los escenarios de predicción de un producto específico.
-3. **Tarjetas KPI**: métricas globales (ventas, ticket, margen, desperdicio) actualizadas desde MySQL.
-4. **Tablas de datos**: cada KPI muestra su tabla subyacente con posibilidad de ordenar y buscar.
-5. **Gráficos interactivos**: cada KPI incluye su gráfico estadístico correspondiente.
-6. **Simulador de escenarios**: métricas P10 / P50 / P90 para el producto seleccionado con gráfico de barras.
-7. **Tabla de escenarios de prueba**: los 3 escenarios con valores asignados para la entrega del PDF.
+Cada KPI tiene sus **propios filtros** (no globales), y su tabla y gráfico se
+recalculan de inmediato en cada cambio:
+
+1. **Filtro de fecha** (KPI 1): rango de fechas sobre las ventas mensuales.
+2. **Selector de categoría** (KPI 2): filtra los productos por categoría.
+3. **Multiselección de productos** (KPI 2 y KPI 4): compara varios productos a la vez.
+4. **Selector de producto drill-down** (simulador): muestra detalle y escenarios de un producto.
+5. **Slider top-N de clientes** (KPI 5): ajusta cuántos clientes VIP se muestran.
+6. **Multiselección de proveedores** (KPI 6): compara varios proveedores.
+7. **Tarjetas KPI**: métricas globales (ventas, ticket, margen, desperdicio).
+8. **Simulador de escenarios**: métricas P10 / P50 / P90 con gráfico de barras.
+9. **Tabla de escenarios de prueba**: los 3 escenarios con valores asignados.
+
+## Tema visual
+
+La interfaz usa un **tema oscuro (negro)** con acento **verde corporativo**
+(coherente con la identidad de un fruver), definido en `.streamlit/config.toml`
+y reforzado con CSS en `dashboard.py`.
 
 ## Preguntas de negocio respondidas
 
