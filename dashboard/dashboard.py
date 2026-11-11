@@ -336,8 +336,9 @@ meta["Recibido_proxy"] = meta["ID_Producto"].map(recibidos).fillna(meta["Unidade
 meta["Merma_pct"] = (100 * meta["Unidades_Desperdiciadas"] / meta["Recibido_proxy"].replace(0, pd.NA)).fillna(0)
 meta["Tipo"] = meta["Categoria"]
 meta["Nombre"] = meta["Producto"]
-if "Unidad_Medida" not in meta.columns:
-    meta["Unidad_Medida"] = "und"
+# Unidad de medida real por producto (libra, kg, unidad, atado) desde ventas_detalle
+unidades = DATA["ventas_detalle"].groupby("ID_Producto")["Unidad_Medida"].first()
+meta["Unidad_Medida"] = meta["ID_Producto"].map(unidades).fillna("und")
 meta["Vida_d"] = 14
 
 escenarios_df = generar_escenarios(pivote, meta, h=4)
